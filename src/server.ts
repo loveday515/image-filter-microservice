@@ -29,6 +29,44 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 
   /**************************************************************************** */
 
+  const validURL = (url: string) => {
+			var res = url.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+			return (res !== null)
+		};
+
+  app.get("/filteredimage", async ( request, response ) => {
+    
+    const { image_url } = request.query;
+
+    if(validURL(image_url) === false) {
+
+      response.status(400).send(
+          "The image url is not valid",
+        );
+
+    }else{
+
+      try{
+
+        let filteredImagePath = await filterImageFromURL(image_url);
+
+        response.sendFile(filteredImagePath, (error) => {
+          if (!error) {
+            deleteLocalFiles([filteredImagePath]);
+          }
+        });
+
+      }catch(error){
+
+        response.status(422).send(
+          "Image could not be processed",
+        );
+
+      }
+    }
+  })
+
+
   //! END @TODO1
   
   // Root Endpoint
